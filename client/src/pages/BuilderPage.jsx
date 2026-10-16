@@ -33,7 +33,7 @@ const BuilderPage = () => {
   useEffect(()=>{
     if(!id) return;
     loadProject(id)
-  },[id])
+  },[id])// fillup the activeProject by context
 
   // useEffect(()=>{
   //   if(!id || !activeProject) return;
@@ -89,7 +89,7 @@ const BuilderPage = () => {
       onDownload={handleDownload}
       onBack={()=> navigate("/")}
       onLogout={logout} />
-      {/* Main Layout */}
+
 
       {/* Main Layout */}
       <div className="flex-1 flex overflow-hidden">
@@ -124,6 +124,10 @@ const BuilderPage = () => {
                 }
             </div>
         </div>
+
+
+
+
 
         {/* Preview / Code Area */}
         <div className="flex-1 overflow-hidden">

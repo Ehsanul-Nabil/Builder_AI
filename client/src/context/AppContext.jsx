@@ -102,6 +102,22 @@ export function AppContextProvider({ children }) {
   }
   
   
+
+  // data={
+  //       _id: project._id,
+  //       name: project.name,
+  //       description: project.description,
+  //       files: filesObj,
+  //       messages: project.messages,
+  //       version: project.version,
+  //       status: project.status,
+  //       filesPlanned: project.filesPlanned,
+  //       filesGenerated: project.filesGenerated,
+  //       currentFile: project.currentFile,
+  //       error: project.error,
+  //       createdAt: project.createdAt,
+  //       updatedAt: project.updatedAt,
+  //   }
   const loadProject = async (id, silent = false)=>{
     if(!user) return;
     if (!silent) setLoadingActiveProject(true)
@@ -118,7 +134,7 @@ export function AppContextProvider({ children }) {
           return files[0]
         })
       }
-    } catch (err) {
+    } catch (err) {+
       console.error("Failed to load project:", err);
       if(!silent){
         toast.error("Failed to load project details");
@@ -204,6 +220,44 @@ export function AppContextProvider({ children }) {
       }
     },[user]
   )
+
+
+//   1. setTimeout()
+// Executes a function once after a specified delay.
+// setTimeout(() => {
+//     console.log("Hello!");
+// }, 2000);
+
+
+// Output after approximately 2 seconds:
+// Hello!
+
+
+// - 2000 means 2,000 milliseconds = 2 seconds.
+// - The callback executes once, after the delay.
+
+
+// 2. setInterval()
+// Executes a function repeatedly at a specified interval.
+// setInterval(() => {
+//     console.log("Hello!");
+// }, 2000);
+
+
+// Output:
+// Hello!
+// Hello!
+// Hello!
+// ...
+
+
+// It prints repeatedly, approximately every 2 seconds, until the interval is stopped.
+
+
+
+
+
+  
 
   const debouncedSave = React.useMemo(
         ()=>debounce(async (files, id) => {

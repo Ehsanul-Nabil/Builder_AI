@@ -59,6 +59,25 @@ export async function createProject(req, res){
     })
 }
 
+
+// function cookPizza(flavor, options) {
+//     console.log(`1. Rolling out dough for ${flavor} pizza...`);
+    
+//     // Call the custom steps provided in options
+//     options.onBake("400°F");
+//     options.onFinish("Pizza is ready to eat!");
+// }
+
+// // 2. Calling the function using function keys inside the object
+// cookPizza("Pepperoni", {
+//     onBake: (temp) => {
+//         console.log(`2. Baking in oven at ${temp}...`);
+//     },
+//     onFinish: (message) => {
+//         console.log(`3. ${message}`);
+//     }
+// });
+
 // Background worker to progressive generate files and update database in real-time.
 async function runBackgroundGeneration(projectId, prompt){
     try {
@@ -67,6 +86,10 @@ async function runBackgroundGeneration(projectId, prompt){
             onPlan: async (plan) => {
                 console.log(`[Background AI] Plan created for project ${projectId}. Planned ${plan.files.length} files.`);
                 const fileList = plan.files.map((f)=>`- \`${f.path}\`: ${f.description}`).join("\n");
+                    //                 [
+                    //   "- `index.html`: Main entry page",
+                    //   "- `styles.css`: Styling rules"
+                    // ]
 
                 await Project.findByIdAndUpdate(projectId, {
                     name: plan.projectName || "Generated Project",
@@ -81,6 +104,7 @@ async function runBackgroundGeneration(projectId, prompt){
                     }
                 })
             },
+            
             onFileComplete: async (path, code)=>{
                 console.log(`[Background AI] Finished file ${path} for project ${projectId}`);
 
@@ -104,6 +128,8 @@ async function runBackgroundGeneration(projectId, prompt){
                 }
             }
         });
+
+
 
         const project = await Project.findById(projectId);
         if(project){
@@ -137,6 +163,11 @@ async function runBackgroundGeneration(projectId, prompt){
 }
 
 
+
+
+
+
+
 // GET /api/projects
 // List all projects owned by the user (summary only, no file contents).
 export async function listProjects(req, res){
@@ -152,6 +183,9 @@ export async function listProjects(req, res){
 
     res.json(projects)
 }
+
+
+
 
 // GET /api/projects/:id
 // Get full project details.
@@ -236,6 +270,7 @@ export async function updateProjectFiles(req, res){
         }
     }
 
+    
     project.files = newFiles;
     await project.save();
 
@@ -295,10 +330,28 @@ export async function getPublicProject(req, res){
         return;
     }
 
+    
+// files: {
+//     "/App.js": {
+//       content: "console.log('Hello');",
+//       hash: "abc123"
+//     },
+//     "/styles.css": {
+//       content: "body { color: red; }",
+//       hash: "xyz789"
+//     }
+//   }
+
+
     const filesObj = {};
     for (const [path, entry] of Object.entries(project.files)) {
         filesObj[path] = entry.content;
     }
+
+//   filesObj=  {
+//   "/App.js": "console.log('Hello');",
+//   "/styles.css": "body { color: red; }"
+// }
 
     res.json({
         _id: project._id,

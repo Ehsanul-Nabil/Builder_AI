@@ -231,6 +231,8 @@ Good copy makes design feel premium. Follow these rules:
 - Always import React: \`import React from 'react';\`
 - For event handlers, reference functions that are actually defined in scope, or use inline functions: \`onClick={() => {}}\`.`;
 
+
+
 export const REVISE_SYSTEM = `${BASE_SYSTEM}
 
 You are revising an existing React project. You will receive:
@@ -301,6 +303,7 @@ Rules:
 - Each description should be one sentence explaining what that file does
 - Do NOT write any code — only plan the file list`;
 
+
 export function buildFileCodeSystem(allFiles, alreadyGeneratedFiles) {
     const fileList = allFiles
         .map((f) => {
@@ -309,6 +312,20 @@ export function buildFileCodeSystem(allFiles, alreadyGeneratedFiles) {
             return `  ${f.path}: ${f.description}${impStr}${expStr}`;
         })
         .join("\n");
+
+   // /App.js: Main application component (Imports: ./Navbar.js, ./styles.css) (Exports: default App)
+  // /Navbar.js: Navigation bar (Exports: default Navbar)
+ // /styles.css: Global website styling (Exports: none)
+
+
+
+
+    // In JavaScript/TypeScript, Object (with a capital O) is a built-in global standard object provided by the language itself.
+   // Object.keys(obj) – returns an array of an object's keys.
+  // Object.values(obj) – returns an array of an object's values.
+ // Object.entries(obj) – returns an array of [key, value] pairs.
+// Object.assign(target, source) – copies properties from one object to
+
 
     let contextStr = "";
     if (alreadyGeneratedFiles && Object.keys(alreadyGeneratedFiles).length > 0) {
@@ -319,6 +336,11 @@ export function buildFileCodeSystem(allFiles, alreadyGeneratedFiles) {
             contextStr += `\nFile: ${path}\n\`\`\`javascript\n${code}\n\`\`\`\n`;
         }
     }
+
+  //     File: src/components/Button.jsx
+ // ```javascript
+// const Button = () => <button>Click me</button>```
+
 
     return `${BASE_SYSTEM}
 
@@ -339,3 +361,22 @@ Rules:
 - The /styles.css file MUST include: Google Font @import, @keyframes float/fadeInUp/fadeIn, and .animate-* utility classes
 - Apply the full design system defined in the base instructions — premium typography, generous spacing, proper hover effects, and animations`;
 }
+
+
+// const RevisionResultSchema = z.object({
+//     operations: z.array(
+//         z.object({
+//             op: z.enum(["create", "update", "delete"]),
+//             path: z.string(),
+//         })
+//     ),
+// });
+
+
+// The AI should return an object matching this structure:
+// {
+//     operations: [
+//         { op: "create", path: "/App.js" },
+//         { op: "update", path: "/styles.css" }
+//     ]
+// }

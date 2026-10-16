@@ -8,6 +8,21 @@ export async function exportProjectZip(project) {
 
         const zip = new JSZip();
 
+
+//         path = "/App.js";  // Object key
+// content = {
+//     content: "console.log('Hello');",
+//     hash: "abc123"
+// };                 // Object value
+
+
+//   files: {
+//         "/App.js": {
+//             content: "console.log('Hello');",
+//             hash: "abc123"
+//         }
+//     }
+
         // Normalize files and detect dependencies from import statements
         const fileMap = {};
         for (const [path, content] of Object.entries(project.files)) {

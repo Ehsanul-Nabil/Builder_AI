@@ -15,7 +15,7 @@ const App = () => {
     <Routes>
       {/* Guest Routes */}
       <Route element={<GuestLayout />}>
-                          {/* passing the string "login" */}
+        {/* passing the string "login" */}
         <Route path='/login' element={<AuthPage mode="login" />} /> 
         <Route path='/register' element={<AuthPage mode="register" />} />
       </Route>

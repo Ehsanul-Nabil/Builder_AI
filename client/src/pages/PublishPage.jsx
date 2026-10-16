@@ -17,6 +17,14 @@ const PublishPage = () => {
             try {
                 const { data } = await api.get(`/api/projects/public/${id}`)
                 setProject(data)
+    //    data =   {
+    //     _id: project._id,
+    //     name: project.name,
+    //     description: project.description,
+    //     files: filesObj,
+    //     messages: project.messages,
+    //     version: project.version,
+    // }
             } catch (err) {
                 console.error("Failed to load public project:", err);
                 setError(err?.response?.data?.error || "This website is not available or is not published yet.");

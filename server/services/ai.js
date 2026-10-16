@@ -23,7 +23,12 @@ async function generateSingleFile(file, allFiles, prompt, alreadyGeneratedFiles)
      const system = buildFileCodeSystem(allFiles, alreadyGeneratedFiles);
 
      const userMsg = `Project: ${prompt}\n\nWrite the complete code for: ${file.path}\nPurpose: ${file.description}`;
+//      const result = await generateObject(...);
+//      const object = result.object;
 
+// system = How should the AI work?
+// prompt = What should the AI do?
+// schema = What structure should the response follow?
      console.log(`[AI] Creating file: ${file.path}...`);
      const { object } = await generateObject({
         model,
@@ -31,6 +36,7 @@ async function generateSingleFile(file, allFiles, prompt, alreadyGeneratedFiles)
         system,
         prompt: userMsg,
         maxRetries: 2,
+        maxOutputTokens: 2000,
      })
 
      let code = normalizeContent(object.code);
@@ -52,6 +58,8 @@ async function generateSingleFile(file, allFiles, prompt, alreadyGeneratedFiles)
      return {path: file.path, code}
 }
 
+
+
 // Generate project files: plan first, then build files in order with fallback retries
 export async function generateProject(prompt, callbacks){
     // Phase 1: Plan
@@ -61,6 +69,7 @@ export async function generateProject(prompt, callbacks){
         schema: FilePlanSchema,
         system: FILE_PLAN_SYSTEM,
         prompt: `Plan a React website for: ${prompt}`,
+        maxOutputTokens: 4000,
         maxRetries: 2,
     });
 
@@ -88,11 +97,46 @@ export async function generateProject(prompt, callbacks){
 
     console.log(`[AI] Phase 2: Generating ${plan.files.length} files in parallel (concurrency=${MAX_CONCURRENCY}): ${plan.files.map((f)=> f.path).join(", ")}`);
 
+    
+//         const plan = {
+//     files: [
+//         {
+//             path: "/App.js",
+//             description: "Main application component",
+//             exports: "default App",
+//             imports: ["./Navbar.js", "./styles.css"]
+//         },
+//         {
+//             path: "/Navbar.js",
+//             description: "Navigation bar",
+//             exports: "default Navbar",
+//             imports: []
+//         },
+//         {
+//             path: "/styles.css",
+//             description: "Global website styling",
+//             exports: "none",
+//             imports: []
+//         }
+//     ],
+//     projectName: "My Portfolio",
+//     projectDescription: "A modern, responsive portfolio website"
+// };
 
     const files = {};
     let pendingFiles = plan.files.map((f)=>({...f}));
 
+//   pendingFiles =  [
+//   { path: "/App.js", description: "Main application component",
+//     exports: "default App", imports: ["./Navbar.js", "./styles.css"] },
+//   { path: "/Navbar.js", description: "Navigation bar component",
+//     exports: "default Navbar", imports: ["./styles.css"] },
+//   { path: "/styles.css", description: "Global CSS styles",
+//     exports: "none", imports: [] }
+// ]
+
     const maxRetryRounds = 2;
+
 
     for (let round = 0; round <= maxRetryRounds; round++) {
         if(pendingFiles.length === 0) break;
@@ -103,6 +147,15 @@ export async function generateProject(prompt, callbacks){
             );
         }
 
+//   pendingFiles =  [
+//   { path: "/App.js", description: "Main application component",
+//     exports: "default App", imports: ["./Navbar.js", "./styles.css"] },
+//   { path: "/Navbar.js", description: "Navigation bar component",
+//     exports: "default Navbar", imports: ["./styles.css"] },
+//   { path: "/styles.css", description: "Global CSS styles",
+//     exports: "none", imports: [] }
+// ]
+
         const results = await pMap(
             pendingFiles,
             async (file) => {
@@ -111,18 +164,38 @@ export async function generateProject(prompt, callbacks){
                         await callbacks.onFileStart(file.path)
                     }
 
-                    const singleResult = await generateSingleFile(file, plan.files, prompt, files)
+                    const singleResult = await generateSingleFile(file, plan.files, prompt, files) // return {path: file.path, code}
 
                     if(callbacks?.onFileComplete){
                         await callbacks.onFileComplete(file.path, singleResult.code)
                     }
-                    return {success: true, file, result: singleResult }
+                    return {success: true, file, result: singleResult } 
                 } catch (err) {
                     return { success: false, file, error: err };
                 }
             },
             {concurrency: MAX_CONCURRENCY},
         )
+
+// const results = [
+//     {
+//         success: true,
+//         file: { path: "/App.js" /* other properties */ },
+//         result: { path: "/App.js", code: "..." }
+//     },
+//     {
+//         success: false,
+//         file: { path: "/Navbar.js" /* other properties */ },
+//         error: Error("AI API request failed")
+//     },
+//     {
+//         success: true,
+//         file: { path: "/styles.css" /* other properties */ },
+//         result: { path: "/styles.css", code: "..." }
+//     }
+// ];
+
+
 
          const failedFiles = [];
          for (const entry of results) {
@@ -137,28 +210,64 @@ export async function generateProject(prompt, callbacks){
          pendingFiles = failedFiles;
     }
 
+            
+// function processNumber(callback) {
+//     callback(5);
+// }                                   // callback function
+
+// processNumber((x) => {
+//     console.log(x);
+// });
+
+
+
     if(pendingFiles.length > 0){
         const failedPaths = pendingFiles.map((f)=>f.path).join(", ");
         console.error(`[AI] Failed to generate ${pendingFiles.length} files after all retry rounds: ${failedPaths}`);
 
-        if (pendingFiles.some((f) => f.path === "/App.js")){
-            const ext = file.path.split(".").pop()?.toLowerCase();
+        // if (pendingFiles.some((f) => f.path === "/App.js")){
+        //     const ext = file.path.split(".").pop()?.toLowerCase();
 
-            if(ext === "css"){
-                files[file.path] = `/* ${file.description} — Generation failed, please retry */\n`
-            }else{
-                files[file.path] = "import React from 'react';\n\n" + 
-                `// ⚠️ This file could not be generated. Please retry.\n` +
-                `// Purpose: ${file.description}\n\n` + 
-                "export default function Placeholder() {\n" +
-                "  return (\n" +
-                    "    <div className='p-8 text-center text-zinc-400'>\n" +
-                    "      <p>⚠️ Component failed to generate. Please try again.</p>\n" +
-                    "    </div>\n" +
-                    "  );\n" +
-                    "}\n";
-            }
-        }
+        //     if(ext === "css"){
+        //         files[file.path] = `/* ${file.description} — Generation failed, please retry */\n`
+        //     }else{
+        //         files[file.path] = "import React from 'react';\n\n" + 
+        //         `// ⚠️ This file could not be generated. Please retry.\n` +
+        //         `// Purpose: ${file.description}\n\n` + 
+        //         "export default function Placeholder() {\n" +
+        //         "  return (\n" +
+        //             "    <div className='p-8 text-center text-zinc-400'>\n" +
+        //             "      <p>⚠️ Component failed to generate. Please try again.</p>\n" +
+        //             "    </div>\n" +
+        //             "  );\n" +
+        //             "}\n";
+        //     }
+        // }
+
+       const file = pendingFiles.find((f) => f.path === "/App.js");
+
+if (file) {
+    const ext = file.path.split(".").pop()?.toLowerCase();
+
+    if (ext === "css") {
+        files[file.path] =
+            `/* ${file.description} — Generation failed, please retry */\n`;
+    } else {
+        files[file.path] =
+            "import React from 'react';\n\n" +
+            `// ⚠️ This file could not be generated. Please retry.\n` +
+            `// Purpose: ${file.description}\n\n` +
+            "export default function Placeholder() {\n" +
+            "  return (\n" +
+            "    <div className='p-8 text-center text-zinc-400'>\n" +
+            "      <p>⚠️ Component failed to generate. Please try again.</p>\n" +
+            "    </div>\n" +
+            "  );\n" +
+            "}\n";
+    }
+} 
+
+
 
     }
 
@@ -169,15 +278,22 @@ export async function generateProject(prompt, callbacks){
     return {files, description: plan.projectDescription}
 }
 
+
+
+
+
 export async function reviseProject(prompt, manifest, relevantFiles, recentMessages){
     const contextParts = [];
 
     contextParts.push("## Current Project Files (manifest)");
     contextParts.push("```");
+
+    // manifest.push({path, hash: entry.hash, size: entry.content.length})
     for (const f of manifest) {
         contextParts.push(`${f.path} (${f.hash}, ${f.size}B)`)
     }
     contextParts.push("```");
+
 
     if(Object.keys(relevantFiles).length > 0){
         contextParts.push("\n## File Contents (for reference)");
@@ -185,6 +301,7 @@ export async function reviseProject(prompt, manifest, relevantFiles, recentMessa
         contextParts.push(`\n### ${path}\n\`\`\`\n${content}\n\`\`\``)
     }
     }
+
 
     if(recentMessages.length > 0){
         contextParts.push("\n## Recent Conversation");
@@ -197,6 +314,13 @@ export async function reviseProject(prompt, manifest, relevantFiles, recentMessa
 
     console.log("[AI] Revising project...");
 
+
+   // schema: RevisionResultSchema,
+  // system: REVISE_SYSTEM,
+ // schema is formatted output
+// system is formatted input
+
+
     const { object: rawParsed } = await generateObject({
         model,
         schema: RevisionResultSchema,
@@ -204,6 +328,8 @@ export async function reviseProject(prompt, manifest, relevantFiles, recentMessa
         prompt: contextParts.join("\n"),
         maxRetries: 2
     })
+
+
 
     if(rawParsed && Array.isArray(rawParsed.operations)){
         rawParsed.operations = rawParsed.operations.map((op)=>{
@@ -239,5 +365,6 @@ export async function reviseProject(prompt, manifest, relevantFiles, recentMessa
             return op;
         })
     }
+    
     return rawParsed;
 }

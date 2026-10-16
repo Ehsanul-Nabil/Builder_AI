@@ -4,10 +4,15 @@ import SandpackErrorMonitor from './SandpackErrorMonitor';
 import { SandpackLayout, SandpackPreview, SandpackProvider } from '@codesandbox/sandpack-react';
 
 const FullPagePreview = ({files}) => {
+//   files=  {
+//   "/App.js": "console.log('Hello');",
+//   "/styles.css": "body { color: red; }"
+// }
 
-        const [showErrorOverlay, setShowErrorOverlay] = useState(true)
+    const [showErrorOverlay, setShowErrorOverlay] = useState(true)
     
 // Convert liveFiles to Sandpack format
+// This code converts your normal files object into the format that Sandpack needs to display and run your project code.
     const sandpackFiles = useMemo(()=>{
         if(!files) return {};
         const spFiles = {};
@@ -16,6 +21,24 @@ const FullPagePreview = ({files}) => {
         }
         return spFiles;
     },[files])
+//          Before: Normal files object
+// {
+//   "/App.js": "console.log('Hello');",
+//   "/styles.css": "body { color: red; }"
+// }
+
+//          After: Sandpack files format
+// {
+//   "/App.js": {
+//     code: "console.log('Hello');"
+//   },
+//   "/styles.css": {
+//     code: "body { color: red; }"
+//   }
+// }
+
+
+
 
     const dependencies = useMemo(()=>{
         if(!files) return {};

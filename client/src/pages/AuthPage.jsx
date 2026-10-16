@@ -121,15 +121,3 @@ const AuthPage = ({mode}) => {
 
 export default AuthPage
 
-
-// import React from 'react';
-
-// const AuthPage = () => {
-//     return (
-//         <div>
-// hii
-//         </div>
-//     );
-// };
-
-// export default AuthPage;

@@ -16,7 +16,7 @@ const projectRouter = Router();
 // Public Route
 projectRouter.get("/public/:id", getPublicProject);
 
-// Protect all following routes
+// Protect all following routes // All are authorized routes
 projectRouter.use(authMiddleware);
 
 projectRouter.post("/", createProject);

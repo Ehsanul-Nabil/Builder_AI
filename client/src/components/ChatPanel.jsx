@@ -51,6 +51,9 @@ const ChatPanel = ({messages, onSend, loading}) => {
                 </div>
             ))}
 
+
+
+
             {loading && (
                 <div className="flex gap-2.5 items-start">
                     <div className="shrink-0 w-6 h-6 rounded-md flex items-center
